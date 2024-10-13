@@ -4,6 +4,9 @@ FROM ubuntu:24.04
 ENV STEAM_COMPAT_CLIENT_INSTALL_PATH=/steam/
 ENV STEAM_COMPAT_DATA_PATH=/steam/compatdata/728470
 
+RUN echo steam steam/question select "I AGREE" | debconf-set-selections \
+ && echo steam steam/license note '' | debconf-set-selections
+
 RUN mkdir -p /astroneer-dedicated-server
 
 RUN dpkg --add-architecture i386
@@ -31,12 +34,9 @@ RUN chmod +x /entrypoint.sh
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 RUN chmod +x /usr/local/bin/healthcheck.sh
 
-# Should exit after 30 seconds
-RUN /var/lib/flatpak/runtime/com.valvesoftware.Steam.CompatibilityTool.Proton-GE/x86_64/stable/active/files/proton run /astroneer/AstroServer.exe
-
 EXPOSE 12123/udp
 
-COPY ./Serverfiles /astroneer/Astro/Saved/Config/WindowsServer
+COPY ./Serverfiles /tmp/WindowsServer
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD /usr/local/bin/healthcheck.sh || exit 1
 
